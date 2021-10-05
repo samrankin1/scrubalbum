@@ -9,16 +9,25 @@ By default, it will complete these steps in order:
 
 ### Requirements
 * Python 3.x
+* Printing track info:
+  * `music-tag`
+  * Files have valid track number tags
 * Normalizing names:
-  * `music-tag~=0.4.3`
+  * `music-tag`
   * Files have valid track number and track title tags
 * Extracting art:
-  * `music-tag~=0.4.3`
+  * `music-tag`
 * Transcoding audio:
-  * `ffmpeg-python~=0.2.0`
+  * `ffmpeg-python`
   * A local FFmpeg installation
 
 ### Configuration
+* `TRACK_INFO`
+  * Controls whether some basic attributes of tracks will be printed before processing
+  * Useful to initially evaluate the quality and consistency of files
+  * Default: `True`
+
+
 * `NORMALIZE_NAMES`
   * Controls whether files will be renamed
   * Default: `True`
