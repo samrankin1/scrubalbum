@@ -58,8 +58,6 @@ def normalize_names():
 		if dirty_name != normal_name:
 			os.rename(dirty_name, normal_name)
 			print("normalize_names: '" + dirty_name + "' => '" + normal_name + "'")
-		else:
-			print("normalize_names: '" + normal_name + "' OK as-is")
 
 
 def extract_art():
