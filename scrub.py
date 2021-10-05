@@ -2,7 +2,7 @@ import os
 import time
 from functools import cmp_to_key
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 # script config start
 
@@ -42,17 +42,20 @@ def _scan_files(path='.'):
 	return [(name, ext) for name, _, ext in parts]
 
 
+# orders a list of music_tag objects by track number (ascending)
 def _cmp_track_number(a, b):
 	a_num = int(a.raw['tracknumber'].value)
 	b_num = int(b.raw['tracknumber'].value)
 	return a_num - b_num
 
 
-def track_info():
-	tracks = [music_tag.load_file(name + '.' + ext) for name, ext in _scan_files() if ext in AUDIO_EXTENSIONS]
-	tracks = sorted(tracks, key=cmp_to_key(_cmp_track_number))
+def _scan_tracks(path='.'):
+	tracks = [music_tag.load_file(name + '.' + ext) for name, ext in _scan_files(path) if ext in AUDIO_EXTENSIONS]
+	return sorted(tracks, key=cmp_to_key(_cmp_track_number))
 
-	for track in tracks:
+
+def track_info():
+	for track in _scan_tracks():
 
 		codec = track['#codec'].value
 		length_s = track['#length'].value
@@ -60,6 +63,7 @@ def track_info():
 		bits_ps = track['#bitspersample'].value
 		sample_rate = track['#samplerate'].value
 		bit_rate = track['#bitrate'].value
+
 		print(
 			"track_info: '{}' [{} {:d}:{:04.1f}] {:d}ch {:d}bit@{:0.1f}kHz {:0.1f}kbps"
 			.format(
@@ -71,23 +75,21 @@ def track_info():
 
 
 def normalize_names():
-	files = _scan_files()
+	for track in _scan_tracks():
 
-	for name, ext in files:
-		if ext not in AUDIO_EXTENSIONS:
-			continue
-
-		dirty_name = name + '.' + ext
-		tags = music_tag.load_file(dirty_name)
+		dirty_name = track.filename
 
 		# handles files with unrecognized totaltracks data (e.g tracknumber = '1/10')
-		raw_track_num = tags.raw['tracknumber'].value
+		raw_track_num = track.raw['tracknumber'].value
 		track_num = str(int(raw_track_num.split('/')[0]))
 
 		# replaces characters unsuitable for file names with _
-		track_title = ILLEGAL_CHARS.sub('_', tags['tracktitle'].value)
+		track_title = ILLEGAL_CHARS.sub('_', track['tracktitle'].value)
 
-		normal_name = track_num + ' - ' + track_title + '.' + ext
+		# parses the file's extension from its name
+		track_ext = dirty_name.rpartition('.')[2]
+
+		normal_name = track_num + ' - ' + track_title + '.' + track_ext
 
 		if dirty_name != normal_name:
 			os.rename(dirty_name, normal_name)
