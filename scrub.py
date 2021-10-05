@@ -1,8 +1,14 @@
 import os
+import time
+from functools import cmp_to_key
+
+VERSION = '0.1.0'
 
 # script config start
 
 AUDIO_EXTENSIONS = ['aac', 'aiff', 'dsf', 'flac', 'm4a', 'mp3', 'ogg', 'opus', 'wav', 'wv']
+
+TRACK_INFO = True
 
 NORMALIZE_NAMES = True
 
@@ -34,6 +40,34 @@ if CONVERT_AUDIO:
 def _scan_files(path='.'):
 	parts = [f.name.rpartition('.') for f in os.scandir(path) if f.is_file()]
 	return [(name, ext) for name, _, ext in parts]
+
+
+def _cmp_track_number(a, b):
+	a_num = int(a.raw['tracknumber'].value)
+	b_num = int(b.raw['tracknumber'].value)
+	return a_num - b_num
+
+
+def track_info():
+	tracks = [music_tag.load_file(name + '.' + ext) for name, ext in _scan_files() if ext in AUDIO_EXTENSIONS]
+	tracks = sorted(tracks, key=cmp_to_key(_cmp_track_number))
+
+	for track in tracks:
+
+		codec = track['#codec'].value
+		length_s = track['#length'].value
+		channels = track['#channels'].value
+		bits_ps = track['#bitspersample'].value
+		sample_rate = track['#samplerate'].value
+		bit_rate = track['#bitrate'].value
+		print(
+			"track_info: '{}' [{} {:d}:{:04.1f}] {:d}ch {:d}bit@{:0.1f}kHz {:0.1f}kbps"
+			.format(
+				track.filename, codec,
+				int(length_s / 60), length_s % 60,
+				channels, bits_ps, sample_rate / 1000, bit_rate / 1000
+			)
+		)
 
 
 def normalize_names():
@@ -142,6 +176,12 @@ def generate_playlist():
 		i += 1
 
 
+start_time = time.perf_counter()
+print('--- start scrub v' + VERSION + ' ---')
+
+if TRACK_INFO:
+	track_info()
+
 if NORMALIZE_NAMES:
 	normalize_names()
 
@@ -153,3 +193,8 @@ if CONVERT_AUDIO:
 
 if GENERATE_PLAYLIST:
 	generate_playlist()
+
+print(
+	'--- end scrub ({:05.3f}s) ---'
+	.format(time.perf_counter() - start_time)
+)
