@@ -81,7 +81,7 @@ def normalize_names():
 
 		# handles files with unrecognized totaltracks data (e.g tracknumber = '1/10')
 		raw_track_num = track.raw['tracknumber'].value
-		track_num = str(int(raw_track_num.split('/')[0]))
+		track_num = int(raw_track_num.split('/')[0])
 
 		# replaces characters unsuitable for file names with _
 		track_title = ILLEGAL_CHARS.sub('_', track['tracktitle'].value)
@@ -89,11 +89,11 @@ def normalize_names():
 		# parses the file's extension from its name
 		track_ext = dirty_name.rpartition('.')[2]
 
-		normal_name = track_num + ' - ' + track_title + '.' + track_ext
+		normal_name = '{:d} - {}.{}'.format(track_num, track_title, track_ext)
 
 		if dirty_name != normal_name:
 			os.rename(dirty_name, normal_name)
-			print("normalize_names: '" + dirty_name + "' => '" + normal_name + "'")
+			print("normalize_names: '{}' => '{}'".format(dirty_name, normal_name))
 
 
 def extract_art():
@@ -122,7 +122,7 @@ def extract_art():
 		with open(art_file, 'wb') as file:
 			file.write(art_raw)
 
-		print("extract_art: extracted '" + art_file + "' from '" + audio_file + "'")
+		print("extract_art: extracted '{}' from '{}'".format(art_file, audio_file))
 		return
 
 	print('[ERR] extract_art: could not find artwork to extract')
@@ -147,7 +147,7 @@ def convert_audio():
 		if DELETE_AFTER_CONVERT:
 			os.remove(old_file)
 
-		print("convert_audio: '" + old_file + "' => '" + new_file + "'")
+		print("convert_audio: '{}' => '{}'", old_file, new_file)
 
 
 def generate_playlist():
@@ -160,7 +160,7 @@ def generate_playlist():
 		matches_n = len(matches)
 
 		if matches_n > 1:
-			print('[ERR] generate_playlist: expected 1 file for track #' + str(i) + ', got ' + str(matches_n) + 'files')
+			print('[ERR] generate_playlist: expected 1 file for track #{:d}, got {:d} files'. format(i, matches_n))
 			break
 
 		elif matches_n == 1:
@@ -172,14 +172,14 @@ def generate_playlist():
 				for song in playlist:
 					file.write(song + '\n')
 
-			print('generate_playlist: wrote out ' + str(i-1) + ' tracks')
+			print('generate_playlist: wrote out {:d} tracks'.format(i-1))
 			break
 
 		i += 1
 
 
 start_time = time.perf_counter()
-print('--- start scrub v' + VERSION + ' ---')
+print('--- start scrub v{} ---'.format(VERSION))
 
 if TRACK_INFO:
 	track_info()
