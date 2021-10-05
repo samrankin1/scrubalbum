@@ -2,7 +2,7 @@ import os
 import time
 from functools import cmp_to_key
 
-VERSION = '0.1.1'
+VERSION = '0.1.2'
 
 # script config start
 
@@ -151,31 +151,12 @@ def convert_audio():
 
 
 def generate_playlist():
-	files = _scan_files()
-	playlist = list()
+	playlist = ['{t.filename}\n'.format(t=track) for track in _scan_tracks()]
 
-	i = 1
-	while True:
-		matches = [name + '.' + ext for name, ext in files if name.startswith(str(i) + ' ') and ext in AUDIO_EXTENSIONS]
-		matches_n = len(matches)
+	with open(PLAYLIST_FILE, 'w') as file:
+		file.writelines(playlist)
 
-		if matches_n > 1:
-			print('[ERR] generate_playlist: expected 1 file for track #{:d}, got {:d} files'. format(i, matches_n))
-			break
-
-		elif matches_n == 1:
-			playlist.append(matches[0])
-
-		else:  # matches_n == 0
-			with open(PLAYLIST_FILE, 'w') as file:
-
-				for song in playlist:
-					file.write(song + '\n')
-
-			print('generate_playlist: wrote out {:d} tracks'.format(i-1))
-			break
-
-		i += 1
+	print('generate_playlist: wrote out {:d} tracks'.format(len(playlist)))
 
 
 start_time = time.perf_counter()

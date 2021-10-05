@@ -1,4 +1,4 @@
-# scrub.py
+# scrub.py v0.1.2
 Run this script with an album folder as the working directory to normalize its contents for archival purposes.
 
 By default, it will complete these steps in order:
