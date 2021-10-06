@@ -1,4 +1,4 @@
-# scrub.py v0.1.2
+# scrub.py v0.1.3
 Run this script with an album folder as the working directory to normalize its contents for archival purposes.
 
 By default, it will complete these steps in order:
@@ -8,7 +8,7 @@ By default, it will complete these steps in order:
 4. Generate a playlist.m3u for the album
 
 ### Requirements
-* Python 3.x
+* Python 3.6+
 * Printing track info:
   * `music-tag`
   * Files have valid track number tags

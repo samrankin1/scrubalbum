@@ -2,7 +2,7 @@ import os
 import time
 from functools import cmp_to_key
 
-VERSION = '0.1.2'
+VERSION = '0.1.3'
 
 # script config start
 
@@ -50,7 +50,7 @@ def _cmp_track_number(a, b):
 
 
 def _scan_tracks(path='.'):
-	tracks = [music_tag.load_file(name + '.' + ext) for name, ext in _scan_files(path) if ext in AUDIO_EXTENSIONS]
+	tracks = [music_tag.load_file(f'{name}.{ext}') for name, ext in _scan_files(path) if ext in AUDIO_EXTENSIONS]
 	return sorted(tracks, key=cmp_to_key(_cmp_track_number))
 
 
@@ -89,11 +89,11 @@ def normalize_names():
 		# parses the file's extension from its name
 		track_ext = dirty_name.rpartition('.')[2]
 
-		normal_name = '{:d} - {}.{}'.format(track_num, track_title, track_ext)
+		normal_name = f'{track_num:d} - {track_title}.{track_ext}'
 
 		if dirty_name != normal_name:
 			os.rename(dirty_name, normal_name)
-			print("normalize_names: '{}' => '{}'".format(dirty_name, normal_name))
+			print(f"normalize_names: '{dirty_name}' => '{normal_name}'")
 
 
 def extract_art():
@@ -108,7 +108,7 @@ def extract_art():
 		if ext not in AUDIO_EXTENSIONS:
 			continue
 
-		audio_file = name + '.' + ext
+		audio_file = f'{name}.{ext}'
 		tags = music_tag.load_file(audio_file)
 
 		try:
@@ -118,11 +118,11 @@ def extract_art():
 		except (KeyError, ValueError):
 			continue
 
-		art_file = ART_FILE_NAME + '.' + art_ext
+		art_file = f'{ART_FILE_NAME}.{art_ext}'
 		with open(art_file, 'wb') as file:
 			file.write(art_raw)
 
-		print("extract_art: extracted '{}' from '{}'".format(art_file, audio_file))
+		print(f"extract_art: extracted '{art_file}' from '{audio_file}'")
 		return
 
 	print('[ERR] extract_art: could not find artwork to extract')
@@ -135,8 +135,8 @@ def convert_audio():
 		if ext not in AUDIO_EXTENSIONS or ext == AUDIO_OUTPUT_EXTENSION:
 			continue
 
-		old_file = name + '.' + ext
-		new_file = name + '.' + AUDIO_OUTPUT_EXTENSION
+		old_file = f'{name}.{ext}'
+		new_file = f'{name}.{AUDIO_OUTPUT_EXTENSION}'
 		(
 			ffmpeg
 			.input(old_file)
@@ -147,20 +147,20 @@ def convert_audio():
 		if DELETE_AFTER_CONVERT:
 			os.remove(old_file)
 
-		print("convert_audio: '{}' => '{}'", old_file, new_file)
+		print(f"convert_audio: '{old_file}' => '{new_file}'")
 
 
 def generate_playlist():
-	playlist = ['{t.filename}\n'.format(t=track) for track in _scan_tracks()]
+	playlist = [f'{track.filename}\n' for track in _scan_tracks()]
 
 	with open(PLAYLIST_FILE, 'w') as file:
 		file.writelines(playlist)
 
-	print('generate_playlist: wrote out {:d} tracks'.format(len(playlist)))
+	print(f'generate_playlist: wrote out {len(playlist):d} tracks')
 
 
 start_time = time.perf_counter()
-print('--- start scrub v{} ---'.format(VERSION))
+print(f'--- start scrub v{VERSION} ---')
 
 if TRACK_INFO:
 	track_info()
@@ -177,7 +177,4 @@ if CONVERT_AUDIO:
 if GENERATE_PLAYLIST:
 	generate_playlist()
 
-print(
-	'--- end scrub ({:05.3f}s) ---'
-	.format(time.perf_counter() - start_time)
-)
+print(f'--- end scrub ({(time.perf_counter() - start_time):05.3f}s) ---')
