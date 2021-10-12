@@ -4,7 +4,7 @@ import os
 import time
 from functools import cmp_to_key
 
-VERSION = '0.1.3'
+VERSION = '0.2.0'
 
 # script config start
 
@@ -20,6 +20,10 @@ ART_FILE_NAME = 'folder'
 
 CONVERT_AUDIO = True
 AUDIO_OUTPUT_EXTENSION = 'flac'
+COMPRESSION_LEVEL = 12
+SAMPLE_FORMAT = 's16'
+SAMPLE_FORMAT_DEPTH = 16
+SAMPLE_RATE = 44100
 DELETE_AFTER_CONVERT = True  # False is incompatible with GENERATE_PLAYLIST
 FFMPEG_LOG_LEVEL = 'warning'  # 'info' for more output, 'quiet' for none
 
@@ -134,15 +138,35 @@ def convert_audio():
 	files = _scan_files()
 
 	for name, ext in files:
-		if ext not in AUDIO_EXTENSIONS or ext == AUDIO_OUTPUT_EXTENSION:
+		if ext not in AUDIO_EXTENSIONS:
 			continue
 
 		old_file = f'{name}.{ext}'
+
+		if ext == AUDIO_OUTPUT_EXTENSION:
+			track = music_tag.load_file(old_file)
+			bits_ps = track['#bitspersample'].value
+			sample_rate = track['#samplerate'].value
+
+			if bits_ps == SAMPLE_FORMAT_DEPTH and sample_rate == SAMPLE_RATE:
+				continue
+
 		new_file = f'{name}.{AUDIO_OUTPUT_EXTENSION}'
+
+		# FFmpeg cannot edit existing files in-place
+		if new_file == old_file:
+			new_old_file = f'{name}_old.{ext}'
+			os.rename(old_file, new_old_file)
+			old_file = new_old_file
+
 		(
 			ffmpeg
 			.input(old_file)
-			.output(new_file, compression_level=12, vsync=0, loglevel=FFMPEG_LOG_LEVEL)
+			.output(
+				new_file,
+				compression_level=COMPRESSION_LEVEL, sample_fmt=SAMPLE_FORMAT, ar=SAMPLE_RATE,
+				vsync=0, loglevel=FFMPEG_LOG_LEVEL
+			)
 			.run()
 		)
 
