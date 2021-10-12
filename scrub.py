@@ -44,8 +44,8 @@ def _scan_files(path='.'):
 
 # orders a list of music_tag objects by track number (ascending)
 def _cmp_track_number(a, b):
-	a_num = int(a.raw['tracknumber'].value)
-	b_num = int(b.raw['tracknumber'].value)
+	a_num = int(a.raw['tracknumber'].value.split('/')[0])
+	b_num = int(b.raw['tracknumber'].value.split('/')[0])
 	return a_num - b_num
 
 
